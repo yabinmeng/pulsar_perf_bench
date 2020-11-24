@@ -23,7 +23,7 @@ When executing a Pulsar perf command, it outputs the end-to-end performance metr
 
 ---
 
-**Properly Capture Pulsar Perf Execution Metrics**
+&#x1F537; **Properly Capture Pulsar Perf Execution Metrics**
 
 The way that Pulsar perf captures the end-to-end performance metrics, in my opinion, is rather primitive. It doesn't allow the metrics to be exported to an external file (e.g. a CSV file) or to be integrated with a graph/dashboard system like Prometheus and Grafana.
 
@@ -31,7 +31,7 @@ The **main objective** of this repo. is to provide a wrapper utility around Puls
 * The throughput and latency metrics will be saved in a CSV file.
 * If a remote Prometheus Graphite exporter listening host and port (e.g. *<host_ip>:9019*) is provided, the metrics will also be sent to that host and port in [PlainText Protocol](https://graphite.readthedocs.io/en/stable/feeding-carbon.html#the-plaintext-protocol) format. By doing so, the Pulsar perf execution metrics can be integrated into Prometheus and Grafana.
 
-**Fine Tune Pulsar Cluster Settings**
+&#x1F537; **Fine Tune Pulsar Cluster Settings**
 
 Another limitation of Pulsar perf utility is that it doesn't offer the capability to fine tune some key cluster parameters that are critical for the overall performance. Some of these key parameters are:
 * Whether or not a topic is partitioned.
