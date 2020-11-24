@@ -1,0 +1,29 @@
+pfb-general:
+  pulsar_bin_homedir: /Users/yabinmeng/DataStax/apache-pulsar-2.6.2
+  cluster_name: mypulsar_cluster
+  topic_type: persistent
+  partitioned_topic: false
+  num_partitions: 3
+  # Possible values: [producer, consumer, reader, websocket-producer, managed-ledger]
+  # - (currently only supports producer and consumer)
+  client_type: producer
+  #client_type: consumer
+
+pfb-persistence:
+  enabled: false
+  ensembleSize: 3
+  writeQuorum: 3
+  ackQuorum: 2
+  deduplicationEnabled: true
+
+pulsar-perf-common:
+  rate: 1000000
+
+pulsar-perf-producer:
+  num-test-threads: 2
+  num-producers: 2
+  payload-file:
+
+pulsar-perf-consumer:
+  num-consumers: 4
+  subscription-type: Shared

@@ -1,10 +1,8 @@
 - [1. Overview](#1-overview)
-  - [1.1. Properly Capture Pulsar Perf Execution Metrics](#11-properly-capture-pulsar-perf-execution-metrics)
-  - [1.2. Tweak Pulsar Cluster Settings](#12-tweak-pulsar-cluster-settings)
 - [2. Benchmark Utility Description](#2-benchmark-utility-description)
   - [2.1. Configuration File](#21-configuration-file)
     - [2.1.1. Limitation](#211-limitation)
-  - [2.2. Fine Tune Pulsar Topic and Message Persistence Behavior](#22-fine-tune-pulsar-topic-and-message-persistence-behavior)
+  - [2.2. Change Pulsar Topic and Message Persistence Behavior](#22-change-pulsar-topic-and-message-persistence-behavior)
   - [2.3. Execution Output](#23-execution-output)
     - [2.3.1. Metrics Integration with Prometheus and Grafana](#231-metrics-integration-with-prometheus-and-grafana)
 
@@ -23,7 +21,9 @@ When executing a Pulsar perf command, it outputs the end-to-end performance metr
 ...
 ``` 
 
-## 1.1. Properly Capture Pulsar Perf Execution Metrics
+---
+
+**Properly Capture Pulsar Perf Execution Metrics**
 
 The way that Pulsar perf captures the end-to-end performance metrics, in my opinion, is rather primitive. It doesn't allow the metrics to be exported to an external file (e.g. a CSV file) or to be integrated with a graph/dashboard system like Prometheus and Grafana.
 
@@ -31,7 +31,7 @@ The **main objective** of this repo. is to provide a wrapper utility around Puls
 * The throughput and latency metrics will be saved in a CSV file.
 * If a remote Prometheus Graphite exporter listening host and port (e.g. *<host_ip>:9019*) is provided, the metrics will also be sent to that host and port in [PlainText Protocol](https://graphite.readthedocs.io/en/stable/feeding-carbon.html#the-plaintext-protocol) format. By doing so, the Pulsar perf execution metrics can be integrated into Prometheus and Grafana.
 
-## 1.2. Tweak Pulsar Cluster Settings
+**Fine Tune Pulsar Cluster Settings**
 
 Another limitation of Pulsar perf utility is that it doesn't offer the capability to fine tune some key cluster parameters that are critical for the overall performance. Some of these key parameters are:
 * Whether or not a topic is partitioned.
@@ -93,7 +93,7 @@ By default, the utility takes the configuration inputs from a file named **ppfb.
 
    For example, in "*pulsar-perf*" cli, you can use either "-r" or "--rate" to specify the message processing rate. But in this utility, it has to be specified as "--rate".
 
-## 2.2. Fine Tune Pulsar Topic and Message Persistence Behavior
+## 2.2. Change Pulsar Topic and Message Persistence Behavior
 
 This utility is able to fine tune Pular topic and cluster behaviors through the following configuration items:
 
