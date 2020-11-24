@@ -110,4 +110,4 @@ When executing the utility, it will create a log file (under **logs** sub-direct
 
 The following screenshot shows an example displaying the bench execution metrics on a Grafana dashboard when the metrics are exposed to a Prometheus server via a Prometheus Graphite exporter.
 
-<img src="https://github.com/yabinmeng/pulsar_perf_bench/tree/master/screenshots>/grafana.png" width="800">
+<img src="https://github.com/yabinmeng/pulsar_perf_bench/blob/master/screenshots/grafana.png" width="800">
