@@ -110,7 +110,7 @@ When executing the utility, it will create a log file (under **logs** sub-direct
 
 The command line argument "-g or --prom_graphite" of this utility is optional. But when provided, it specifies the listening host and port where a [Prometheus Graphite Exporter](https://github.com/prometheus/graphite_exporter)(**PGE**) is running and the utility also sends the metrics to the PGE over the network. 
 
-The PGE is a data sourcee for a Prometheus server to scrape (pull). Add a scrape job configuration section in Prometheus server and it is then able to pull the metrics from the PGE.
+The PGE is a data source for a Prometheus server to scrape (pull). Add a scrape job configuration section in the Prometheus server and it is then able to pull the metrics from the PGE.
 
 ```
 scrape_configs:
@@ -121,6 +121,6 @@ scrape_configs:
       - <PGE_HOST_IP>:9108
 ```
 
-The following screenshot shows an example of displaying the bench execution metrics on a Grafana dashboard where the metrics is exposed to Prometheus via PGE.
+The following screenshot shows an example of displaying the bench execution metrics on a Grafana dashboard where the metrics is exposed to a Prometheus server via PGE.
 
 <img src="https://github.com/yabinmeng/pulsar_perf_bench/blob/master/screenshots/grafana.png" width="800">
