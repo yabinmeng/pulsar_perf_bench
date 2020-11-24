@@ -108,6 +108,6 @@ When executing the utility, it will create a log file (under **logs** sub-direct
 
 ### 2.3. Metrics Integration with Prometheus and Grafana
 
-The following screenshot shows an example displaying the bench execution metrics on a Grafana dashboard when the metrics are exposed to a Prometheus server via a Prometheus Graphite exporter.
+The following screenshot shows an example displaying the bench execution metrics on a Grafana dashboard when the metrics is exposed to Prometheus via Prometheus Graphite exporter.
 
 <img src="https://github.com/yabinmeng/pulsar_perf_bench/blob/master/screenshots/grafana.png" width="800">
