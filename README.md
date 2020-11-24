@@ -1,6 +1,6 @@
 - [1. Overview](#1-overview)
   - [1.1. Properly Capture Pulsar Perf Execution Metrics](#11-properly-capture-pulsar-perf-execution-metrics)
-  - [1.2. Fine Tune Pulsar Cluster Behavior](#12-fine-tune-pulsar-cluster-behavior)
+  - [1.2. Tweak Pulsar Cluster Settings](#12-tweak-pulsar-cluster-settings)
 - [2. Benchmark Utility Description](#2-benchmark-utility-description)
   - [2.1. Configuration File](#21-configuration-file)
     - [2.1.1. Limitation](#211-limitation)
@@ -31,14 +31,11 @@ The **main objective** of this repo. is to provide a wrapper utility around Puls
 * The throughput and latency metrics will be saved in a CSV file.
 * If a remote Prometheus Graphite exporter listening host and port (e.g. *<host_ip>:9019*) is provided, the metrics will also be sent to that host and port in [PlainText Protocol](https://graphite.readthedocs.io/en/stable/feeding-carbon.html#the-plaintext-protocol) format. By doing so, the Pulsar perf execution metrics can be integrated into Prometheus and Grafana.
 
-## 1.2. Fine Tune Pulsar Cluster Behavior
+## 1.2. Tweak Pulsar Cluster Settings
 
 Another limitation of Pulsar perf utility is that it doesn't offer the capability to fine tune some key cluster parameters that are critical for the overall performance. Some of these key parameters are:
-* Whether or not a topic is partitioned (by default, Pulsar perf will create a non-partitioned topic and run test against it).
+* Whether or not a topic is partitioned.
 * How the bookie persistence behavior is configured, e.g.
-  * ensembleSize
-  * writeQuorum
-  * ackQuorum
 * Whether or not message deduplication is allowed
 
 The capability of being able to fine tune these cluster-specific settings, in an automatic way, is often crucial in a performance benchmark testing. Pulsar perf, however, doesn't have this capability out of the box. 
