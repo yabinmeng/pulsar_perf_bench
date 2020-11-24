@@ -1,0 +1,186 @@
+#######################
+# General settings for pulsar perf benchmark testing
+# ---------------------
+pfb-general:
+  # Pulsar binary home directory
+  #   default: N/A
+  pulsar_bin_homedir:
+
+  # Pulsar cluster name
+  #   default: N/A
+  cluster_name:
+
+  # Message type
+  #   default: persistent
+  #   possible values: [persistent, non-persistent]
+  topic_type: persistent
+
+  # Partitioned topic
+  #   default: false
+  partitioned_topic: false
+
+  # Number of partitions - required for partitioned topic
+  #   default: 0
+  num_partitions: 3
+
+  # Performance workload type
+  #   default: producer
+  #   possible values: [producer, consumer, reader, websocket-producer, managed-ledger]
+  #   - (currently only supports producer and consumer)
+  #client_type: producer
+  client_type: consumer
+
+
+
+#######################
+# Bookie specific settings for pulsar perf benchmark testing
+# ---------------------
+pfb-persistence:
+  enabled: true
+  ensembleSize: 3
+  writeQuorum: 3
+  ackQuorum: 2
+  deduplicationEnabled: false
+
+
+
+#######################
+# Common settings for "pulsar-perf" utility (version 2.6)
+# ---------------------
+pulsar-perf-common:
+  # Message production/consumption rate (msg/s) across all topics
+  #   default: 100
+  rate: 100000
+
+  # Number of Topics
+  #   default: 1
+  num-topic:
+
+  # Max. number of TCP connections per broker
+  #   default: 100
+  max-connections:
+
+  # Statistics interval seconds. 0 means statistics will be disabled
+  #   default: 0
+  stats-interval-seconds:
+
+  # The private key name to encrypt/decrypt payload
+  #   default: N/A
+  encryption-key-name:
+
+  # The file which contains the private key to decrypt payload
+  #   default: N/A
+  encryption-key-value-file:
+
+
+
+#######################
+# Producer specific settings for "pulsar-perf" utility (version 2.6
+# ---------------------
+pulsar-perf-producer:
+  # Number of test threads
+  #   default: 1
+  num-test-threads:
+
+  # Number of producers per topic
+  #   default: 1
+  num-producers: 2
+
+  # Number of messages to publish in total. 0 means to keep publishing
+  #   default: 0
+  num-messages:
+
+  # Message size in bytes
+  #   default: 1024
+  msg-size:
+
+  # Warm-up time in seconds
+  #   default: 1
+  warmup-time:
+
+  # Max. number of bytes per batch
+  #   default: 4194304
+  batch-max-bytes:
+
+  # Max. number of messages per batch
+  #   default: 1000
+  batch-max-messages:
+
+  # The batch message time window in milli-second
+  #   default: 1
+  batch-time-window-in-ms:
+
+  # Should split the message and publish in chunks if message size
+  # is larger than allowed max size.
+  #   default: false
+  chunking:
+
+  # Compress message payload
+  #   default: NONE
+  #   possible values: [NONE, LZ4, ZLIB, ZSTD, SNAPPY]
+  compression:
+
+  # Mark message with a given delay in seconds
+  #   default: 0
+  delay-in-sec:
+
+  # The delimiter used to split payloads in the payload file
+  #   default: \n
+  payload-delimiter: 
+
+  # UTF-8 encoded text file that includes publishing message payloads.
+  # A payload will be randomly selected from the payload file
+  #   default: N/A
+  payload-file:
+
+  # Max. number of outstanding messages
+  #   default: 1000
+  max-outstanding:
+
+  # Max. number of outstanding messages across partition
+  #   default: 50000
+  max-outstanding-across-partitions:
+
+  # Exit from the process on publish failure
+  #   default: false
+  exit-on-failure:
+
+
+
+#######################
+# Consumer specific settings for "pulsar-perf" utility (version 2.6
+# ---------------------
+pulsar-perf-consumer:
+  # Number of consumers per topic
+  #   default: 1
+  num-consumers: 4
+
+  # Expire time in ms for incomplete chunk messages
+  #   default: 0
+  expire_time_incomplete_chunked_messages:
+
+  # Max pending chunk messages
+  #   default: 0
+  max_chunked_msg:
+
+  # Size of the receiver queue
+  #   default: 1000
+  receiver-queue-size:
+
+  # Whether the subscription status should be replicated
+  #   default: false
+  replicated:
+
+  # Subscriber name prefix
+  #   default: N/A
+  subscriber-name:
+
+  # Subscription type
+  #   default: Exclusive
+  #   possible values: [Exclusive, Shared, Failover, Key_Shared]
+  subscription-type:
+
+  # Subscription position
+  #   default: Latest
+  #   possible values: [Latest, Earliest]
+  subscription-position:
