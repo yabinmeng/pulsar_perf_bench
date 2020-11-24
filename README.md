@@ -4,7 +4,7 @@
 - [2. Benchmark Utility Description](#2-benchmark-utility-description)
   - [2.1. Configuration File](#21-configuration-file)
     - [2.1.1. Limitation](#211-limitation)
-  - [2.2. Fine Tune Pulsar Topic and Cluster Behavior](#22-fine-tune-pulsar-topic-and-cluster-behavior)
+  - [2.2. Fine Tune Pulsar Topic and Message Persistence Behavior](#22-fine-tune-pulsar-topic-and-message-persistence-behavior)
   - [2.3. Execution Output](#23-execution-output)
     - [2.3.1. Metrics Integration with Prometheus and Grafana](#231-metrics-integration-with-prometheus-and-grafana)
 
@@ -96,7 +96,7 @@ By default, the utility takes the configuration inputs from a file named **ppfb.
 
    For example, in "*pulsar-perf*" cli, you can use either "-r" or "--rate" to specify the message processing rate. But in this utility, it has to be specified as "--rate".
 
-## 2.2. Fine Tune Pulsar Topic and Cluster Behavior
+## 2.2. Fine Tune Pulsar Topic and Message Persistence Behavior
 
 This utility is able to fine tune Pular topic and cluster behaviors through the following configuration items:
 
