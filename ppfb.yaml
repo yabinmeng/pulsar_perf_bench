@@ -1,5 +1,5 @@
 pfb-general:
-  pulsar_bin_homedir: /Users/yabinmeng/DataStax/apache-pulsar-2.6.2
+  pulsar_bin_homedir: /opt/pulsar
   cluster_name: mypulsar_cluster
   topic_type: persistent
   partitioned_topic: false
