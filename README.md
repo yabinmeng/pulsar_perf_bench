@@ -44,7 +44,7 @@ The **secondary objective** of this repo is to extend Pulsar perf's capability i
 
 # 2. Benchmark Utility Description
 
-The utility in this repo, **pperf_bench.py**, is Python based and is tested with Python version 3.8.6.
+**NOTE**: The utility in this repo, **pperf_bench.py**, is Python based and requires python version **3.7+** (it is tested with Python version **3.8.6**).
 
 The utility takes several command-line arguments, as listed below:
 ```
