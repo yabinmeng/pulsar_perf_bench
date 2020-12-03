@@ -12,12 +12,14 @@ pfb-general:
 pfb-persistence:
   enabled: false
   ensembleSize: 3
-  writeQuorum: 3
+  writeQuorum: 2
   ackQuorum: 2
   deduplicationEnabled: true
 
 pulsar-perf-common:
-  rate: 1000000
+  # 10M msg/s
+  rate: 10000000
+  stats-interval-seconds: 10
 
 pulsar-perf-producer:
   num-test-threads: 2
