@@ -10,7 +10,7 @@ import shutil
 import glob
 
 from os import path
-from datetime import datetime, time, timezone
+from datetime import datetime, timezone
 
 _CONSUMER_THRUPT_METRICS_NAMES = ['msg/s', 'Mbit/s']
 _PRODUCER_THRUPT_METRICS_NAMES = ['msg/s', 'Mbit/s', 'failure_msg/s']
@@ -221,7 +221,6 @@ def _exec_pulsar_perf_cmd(pperf_cmd_timeout, cmdstr, subcmd, rm_file, gm_file, g
         port = int(port_str)
         sokt.connect((host, port))
 
-    have_output = False
     print_title_line = True
     while True:
         line = p.stdout.readline()
@@ -265,22 +264,18 @@ def _exec_pulsar_perf_cmd(pperf_cmd_timeout, cmdstr, subcmd, rm_file, gm_file, g
 
         line_processed = metrics_line_handler.process()
 
-        if line_processed:
-            have_output = True
-
     p.terminate()
 
     if sokt is not None:
         sokt.close()
 
-    if have_output:
-        logger_pulsar_perf.debug(_PULSAR_CMD_OUTPUT_SEPERATOR + "\n")
-
 
 ##
 # Execute "pulsar-admin" command
 ##
-def _exec_pulsar_adm_cmd(cmdstr):
+def _exec_pulsar_adm_cmd(cmdstr, show_cmd_output=True, keyword_to_chk=None):
+    logger_pulsar_admin.debug("      ({})".format(cmdstr))
+
     p = subprocess.Popen(
         [cmdstr],
         shell=True,
@@ -293,38 +288,46 @@ def _exec_pulsar_adm_cmd(cmdstr):
     http_cd = 200
     http_rsnstr = ""
 
+    warn_msg_to_skip = "Warning: Nashorn engine"
+
     have_output = False
+    keyword_exists = False
     while True:
         line = p.stdout.readline()
+        line = line.strip()
+
         if not line:
             break
+        elif warn_msg_to_skip not in line:
+            have_output = True
 
-        have_output = True
+            if show_cmd_output:
+                logger_pulsar_admin.debug(line.strip())
 
-        line = line.strip()
-        logger_pulsar_admin.debug(line.strip())
+            # check if keyword exists
+            if not keyword_exists and keyword_to_chk is not None and keyword_to_chk in line:
+                keyword_exists = True
 
-        # check for HTTP code
-        regfindall = re.findall('HTTP [0-9]+ [a-zA-Z]+', line.strip())
-        if regfindall:
-            http_cdstr = regfindall[0]
-            http_cd = int(http_cdstr.split()[1])
+            # check for HTTP code
+            regfindall = re.findall('HTTP [0-9]+ [a-zA-Z]+', line.strip())
+            if regfindall:
+                http_cdstr = regfindall[0]
+                http_cd = int(http_cdstr.split()[1])
 
-        # check for reason string
-        if re.match('^Reason: \\w+', line):
-            http_rsnstr = line
+            # check for reason string
+            if re.match('^Reason: \\w+', line):
+                http_rsnstr = line
 
-    if have_output:
-        logger_pulsar_admin.debug(_PULSAR_CMD_OUTPUT_SEPERATOR + "\n")
+    return http_cd, http_rsnstr, keyword_exists
 
-    return http_cd, http_rsnstr
 
 ##
 # Process the generated hgrm file from pulsar-perf
 ##
-def _process_hgrm_result_file(pulsar_bin_homedir, pperf_exec_name):
-    for file in glob.glob("{}/*.hgrm".format(pulsar_bin_homedir)):
-        shutil.move(file, "metrics/{}.hgrm".format(pperf_exec_name))
+def _process_hgrm_result_file(pbin_homedir, pperf_exec_nm):
+    for file in glob.glob("{}/*.hgrm".format(pbin_homedir)):
+        shutil.move(file, "metrics/{}.hgrm".format(pperf_exec_nm))
+
 
 ##
 # Main program logic
@@ -482,8 +485,67 @@ if __name__ == '__main__':
 
     real_topic_name = topic_pers_str + "://" + full_topic_name
 
+    cmd_output_cnt = 1
+
     ###
-    # Change Pulsar persistence settings if needed.
+    # Check if the Pulsar tenant exists; if not, create it
+    #
+    logger.info("{}. Check if Pulsar tenant \"{}\" exists".format(
+        cmd_output_cnt, tenant_name))
+
+    pulsar_admin_cmd_str = "{} tenants list".format(pulsar_admin_bin)
+    http_code, reason_str, tenant_exists = _exec_pulsar_adm_cmd(pulsar_admin_cmd_str, False, tenant_name)
+
+    if not tenant_exists:
+        logger.info("   >> Pulsar Tenant \"{}\" doesn't exist; create it!".format(tenant_name))
+        pulsar_admin_cmd_str = "{} tenants create {}".format(pulsar_admin_bin, tenant_name)
+        _exec_pulsar_adm_cmd(pulsar_admin_cmd_str, False)
+    else:
+        logger.info("   >> Pulsar Tenant \"{}\" already exists".format(tenant_name))
+
+    logger.info(_PULSAR_CMD_OUTPUT_SEPERATOR + "\n")
+    cmd_output_cnt = cmd_output_cnt + 1
+
+    ###
+    # Check if the Pulsar namespace exists under the tenant; if not, create it
+    #
+    logger.info("{}. Check if Pulsar namespace \"{}\" exists under tenant \"{}\"".format(
+        cmd_output_cnt, namespace_name, tenant_name))
+
+    pulsar_admin_cmd_str = "{} namespaces list {}".format(pulsar_admin_bin, tenant_name)
+    http_code, reason_str, namespace_exists = \
+        _exec_pulsar_adm_cmd(pulsar_admin_cmd_str, False, "{}/{}".format(tenant_name, namespace_name))
+    if not namespace_exists:
+        logger.info("   >> Pulsar namespace \"{}\" under tenant \"{}\" doesn't exist; create it!".format(
+                    namespace_name, tenant_name))
+        pulsar_admin_cmd_str = "{} namespaces create {}/{}".format(pulsar_admin_bin, tenant_name, namespace_name)
+        _exec_pulsar_adm_cmd(pulsar_admin_cmd_str, False)
+    else:
+        logger.info("   >> Pulsar namespace \"{}\" already exists under tenant \"{}\".".format(
+            namespace_name, tenant_name))
+
+    logger.info(_PULSAR_CMD_OUTPUT_SEPERATOR + "\n")
+    cmd_output_cnt = cmd_output_cnt + 1
+
+    ###
+    # Create a partitioned Pulsar topic if needed. Regular non-partition topic
+    #   doesn't need to be created
+    if partitioned and _num_partitions > 1:
+        logger.info("{}. Create a partitioned topic - number of partitions: {}; topic name: {}".format(
+            cmd_output_cnt, _num_partitions, real_topic_name))
+        cmd_output_cnt = cmd_output_cnt + 1
+        logger.info(_PULSAR_CMD_OUTPUT_SEPERATOR)
+
+        pulsar_admin_subcmd_str = "topics create-partitioned-topic -p {} {}".format(
+            _num_partitions, real_topic_name)
+        pulsar_admin_cmd_str = "{} {}".format(pulsar_admin_bin, pulsar_admin_subcmd_str)
+        _exec_pulsar_adm_cmd(pulsar_admin_cmd_str)
+
+        logger.info(_PULSAR_CMD_OUTPUT_SEPERATOR + "\n")
+        cmd_output_cnt = cmd_output_cnt + 1
+
+    ###
+    # Get Pulsar persistence settings if needed.
     pfb_persistence_settings = config_data['pfb-persistence']
     persistence_enabled = pfb_persistence_settings['enabled']
     ensemble_size = 0
@@ -503,24 +565,7 @@ if __name__ == '__main__':
             write_quorum = max(write_quorum, 2)
             ack_quorum = max(ack_quorum, 2)
 
-    ###
-    # Create a partitioned Pulsar topic if needed. Regular non-partition topic
-    #   doesn't need to be created
-    cmd_output_cnt = 1
-    if partitioned and _num_partitions > 1:
-        logger.info("{}. Create a partitioned topic - number of partitions: {}; topic name: {}".format(
-            cmd_output_cnt, _num_partitions, real_topic_name))
-        cmd_output_cnt = cmd_output_cnt + 1
-        logger.info(_PULSAR_CMD_OUTPUT_SEPERATOR)
-
-        pulsar_admin_subcmd_str = "topics create-partitioned-topic -p {} {}".format(
-            _num_partitions, real_topic_name)
-        pulsar_admin_cmd_str = "{} {}".format(pulsar_admin_bin, pulsar_admin_subcmd_str)
-        http_code, reason_str = _exec_pulsar_adm_cmd(pulsar_admin_cmd_str)
-
-    ###
-    # Set Pulsar persistence related settings
-    if persistence_enabled:
+        # Set Pulsar persistence related settings
         logger.info("{}. Set persistence policies - \"tenant/namespace\": {}/{}, policy: {},{},{}".format(
             cmd_output_cnt,
             tenant_name,
@@ -528,8 +573,7 @@ if __name__ == '__main__':
             ensemble_size,
             write_quorum,
             ack_quorum))
-        logger.info(_PULSAR_CMD_OUTPUT_SEPERATOR)
-        cmd_output_cnt = cmd_output_cnt + 1
+
         pulsar_admin_subcmd_str = "namespaces set-persistence {}/{} -e {} -w {} -a {} -r 0".format(
             tenant_name,
             namespace_name,
@@ -537,13 +581,13 @@ if __name__ == '__main__':
             write_quorum,
             ack_quorum)
         pulsar_admin_cmd_str = "{} {}".format(pulsar_admin_bin, pulsar_admin_subcmd_str)
-        http_code, reason_str = _exec_pulsar_adm_cmd(pulsar_admin_cmd_str)
+        _exec_pulsar_adm_cmd(pulsar_admin_cmd_str)
 
-        logger.info("{}. {} message deduplication.".format(
-            cmd_output_cnt, ("Enable" if dedup_enabled else "Disable")))
+        logger.info(_PULSAR_CMD_OUTPUT_SEPERATOR + "\n")
         cmd_output_cnt = cmd_output_cnt + 1
 
-        logger.info(_PULSAR_CMD_OUTPUT_SEPERATOR)
+        logger.info("{}. {} message deduplication".format(
+            cmd_output_cnt, ("Enable" if dedup_enabled else "Disable")))
 
         if dedup_enabled:
             pulsar_admin_subcmd_str = "namespaces set-deduplication {}/{} -e".format(
@@ -554,7 +598,10 @@ if __name__ == '__main__':
                 tenant_name,
                 namespace_name)
         pulsar_admin_cmd_str = "{} {}".format(pulsar_admin_bin, pulsar_admin_subcmd_str)
-        http_code, reason_str = _exec_pulsar_adm_cmd(pulsar_admin_cmd_str)
+        _exec_pulsar_adm_cmd(pulsar_admin_cmd_str)
+
+        logger.info(_PULSAR_CMD_OUTPUT_SEPERATOR + "\n")
+        cmd_output_cnt = cmd_output_cnt + 1
 
     ###
     # Process pulsar-perf related settings
@@ -571,6 +618,12 @@ if __name__ == '__main__':
         # combine consumer settings
         _combined_settings.update(pperf_consumer_settings)
         pperf_subcmd = "consume"
+
+    # Make sure "stats-interval-seconds" setting is always set,
+    # even if it is not explicitly set in the yaml file
+    stats_interval_keystr = "stats-interval-seconds"
+    if not stats_interval_keystr in _combined_settings:
+        _combined_settings[stats_interval_keystr] = 10
 
     pperfCmdOptionStr = _gen_pulsar_perf_cmdopt_str(_combined_settings)
     if duration_in_sec > 0:
@@ -604,6 +657,7 @@ if __name__ == '__main__':
         if prom_graphite_port is not None and prom_graphite_port != "":
             logger.info("     graphite exporter port: {}".format(prom_graphite_port))
         logger.info(_PULSAR_CMD_OUTPUT_SEPERATOR)
+        print("   Pulsar-perf execution is in progress. Please check the output log file for more details ...\n")
 
         start_time = datetime.now()
 
