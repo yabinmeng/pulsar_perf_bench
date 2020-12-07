@@ -622,9 +622,10 @@ if __name__ == '__main__':
 
     # Make sure "stats-interval-seconds" setting is always set,
     # even if it is not explicitly set in the yaml file
-    stats_interval_keystr = "stats-interval-seconds"
-    if not stats_interval_keystr in _combined_settings:
-        _combined_settings[stats_interval_keystr] = 10
+    #--------------------------------
+    # stats_interval_keystr = "stats-interval-seconds"
+    # if not stats_interval_keystr in _combined_settings:
+    #     _combined_settings[stats_interval_keystr] = 10
 
     pperfCmdOptionStr = _gen_pulsar_perf_cmdopt_str(_combined_settings)
     if duration_in_sec > 0:
