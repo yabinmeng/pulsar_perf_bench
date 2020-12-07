@@ -19,8 +19,8 @@ pfb-persistence:
 pulsar-perf-common:
   # 3M msg/s
   rate: 3000000
-  # Warm-up time: 2 minutes
-  warmup-time: 120
+  # Warm-up time: 1 minute
+  warmup-time: 60
 
 pulsar-perf-producer:
   num-test-threads: 2
