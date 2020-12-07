@@ -17,9 +17,10 @@ pfb-persistence:
   deduplicationEnabled: true
 
 pulsar-perf-common:
-  # 10M msg/s
-  rate: 10000000
-  stats-interval-seconds: 10
+  # 3M msg/s
+  rate: 3000000
+  # Warm-up time: 2 minutes
+  warmup-time: 120
 
 pulsar-perf-producer:
   num-test-threads: 2
