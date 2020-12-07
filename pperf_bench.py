@@ -14,7 +14,8 @@ from datetime import datetime, timezone
 
 _CONSUMER_THRUPT_METRICS_NAMES = ['thrupt_msg/s', 'thrupt_Mbit/s']
 _PRODUCER_THRUPT_METRICS_NAMES = ['thrupt_msg/s', 'thrupt_Mbit/s', 'thrupt_failure_msg/s']
-_LATENCY_METRICS_NAMES = ['latency_mean', 'latency_med', 'latency_95pct', 'latency_99pct', 'latency_99.9pct', 'latency_99.99pct', 'latency_Max']
+_LATENCY_METRICS_NAMES = ['latency_mean', 'latency_med', 'latency_95pct', 'latency_99pct',
+                          'latency_99.9pct', 'latency_99.99pct', 'latency_Max']
 
 _DT_FMT = "%Y-%m-%d"
 _TM_FMT = "%H:%M:%S"
@@ -488,6 +489,34 @@ if __name__ == '__main__':
 
     real_topic_name = topic_pers_str + "://" + full_topic_name
 
+    ###
+    # Check Pulsar persistence settings if needed.
+    pfb_persistence_settings = config_data['pfb-persistence']
+    persistence_enabled = pfb_persistence_settings['enabled']
+    ensemble_size = 0
+    write_quorum = 0
+    ack_quorum = 0
+    dedup_enabled = False
+    if persistence_enabled:
+        ensemble_size = int(pfb_persistence_settings['ensembleSize'])
+        write_quorum = int(pfb_persistence_settings['writeQuorum'])
+        ack_quorum = int(pfb_persistence_settings['ackQuorum'])
+        dedup_enabled = pfb_persistence_settings['deduplicationEnabled']
+
+        # Rules:
+        #  - write_quorum and ack_quorum MUST be equal to or less than ensemble_size
+        #  - ack_quorum should NOT be set as bigger than write_quorum.
+        if write_quorum > ensemble_size or ack_quorum > ensemble_size or ack_quorum > write_quorum:
+            _error_exit(110,
+                        "Incorrect \"ensembleSize,writeQuorum,ackQuorum\" settings ({},{},{}).\n"
+                        "   - ensembleSize must be no less than writeQuorum or ackQuorum.\n"
+                        "   - ackQuorum shouldn't be larger than writeQuorum".format(
+                            ensemble_size, write_quorum, ack_quorum),
+                        False)
+
+    ###
+    # Start submitting the workload to the Pulsar instance
+    #
     cmd_output_cnt = 1
 
     ###
@@ -546,25 +575,12 @@ if __name__ == '__main__':
         cmd_output_cnt = cmd_output_cnt + 1
 
     ###
-    # Get Pulsar persistence settings if needed.
-    pfb_persistence_settings = config_data['pfb-persistence']
-    persistence_enabled = pfb_persistence_settings['enabled']
-    ensemble_size = 0
-    write_quorum = 0
-    ack_quorum = 0
-    dedup_enabled = False
+    # Set Pulsar persistence settings if requested
     if persistence_enabled:
         ensemble_size = int(pfb_persistence_settings['ensembleSize'])
         write_quorum = int(pfb_persistence_settings['writeQuorum'])
         ack_quorum = int(pfb_persistence_settings['ackQuorum'])
         dedup_enabled = pfb_persistence_settings['deduplicationEnabled']
-
-        if ensemble_size < 2 or write_quorum < 2 or ack_quorum < 2:
-            print("Incorrect \"ensembleSize,writeQuorum,ackQuorum\" settings ({},{},{}). Use \"2,2,2\" instead".format(
-                ensemble_size, write_quorum, ack_quorum))
-            ensemble_size = max(ensemble_size, 2)
-            write_quorum = max(write_quorum, 2)
-            ack_quorum = max(ack_quorum, 2)
 
         # Set Pulsar persistence related settings
         logger.info("{}. Set persistence policies - \"tenant/namespace\": {}/{}, policy: {},{},{}".format(
@@ -622,7 +638,7 @@ if __name__ == '__main__':
 
     # Make sure "stats-interval-seconds" setting is always set,
     # even if it is not explicitly set in the yaml file
-    #--------------------------------
+    # --------------------------------
     # stats_interval_keystr = "stats-interval-seconds"
     # if not stats_interval_keystr in _combined_settings:
     #     _combined_settings[stats_interval_keystr] = 10
@@ -665,7 +681,7 @@ if __name__ == '__main__':
 
         raw_metrics_file = open(raw_metrics_file_name, 'w')
         graphite_metrics_file = open(graphite_metrics_file_name, 'w')
-        #graphite_metrics_prefix = "pperf_bench_" + pperf_subcmd
+        # graphite_metrics_prefix = "pperf_bench_" + pperf_subcmd
         graphite_metrics_prefix = "ppfb"
 
         # Execute "pulsar-perf" command
