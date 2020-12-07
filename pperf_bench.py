@@ -12,9 +12,9 @@ import glob
 from os import path
 from datetime import datetime, timezone
 
-_CONSUMER_THRUPT_METRICS_NAMES = ['msg/s', 'Mbit/s']
-_PRODUCER_THRUPT_METRICS_NAMES = ['msg/s', 'Mbit/s', 'failure_msg/s']
-_LATENCY_METRICS_NAMES = ['mean', 'med', '95pct', '99pct', '99.9pct', '99.99pct', 'Max']
+_CONSUMER_THRUPT_METRICS_NAMES = ['thrupt_msg/s', 'thrupt_Mbit/s']
+_PRODUCER_THRUPT_METRICS_NAMES = ['thrupt_msg/s', 'thrupt_Mbit/s', 'thrupt_failure_msg/s']
+_LATENCY_METRICS_NAMES = ['latency_mean', 'latency_med', 'latency_95pct', 'latency_99pct', 'latency_99.9pct', 'latency_99.99pct', 'latency_Max']
 
 _DT_FMT = "%Y-%m-%d"
 _TM_FMT = "%H:%M:%S"
@@ -130,11 +130,12 @@ def _sanitize(s):
 # pulsar-perf produce metrics line handler
 ##
 class MetricsLineHandler:
-    def __init__(self, sokt, rm_file, gm_file, prefix, m_names, line, mline_tag):
+    def __init__(self, sokt, rm_file, gm_file, prefix, clnt_type, m_names, line, mline_tag):
         self.sokt = sokt
         self.rm_file = rm_file
         self.gm_file = gm_file
         self.prefix = prefix
+        self.client_type = clnt_type
         self.m_names = m_names
         self.line = line
         self.mline_tag = mline_tag
@@ -175,9 +176,10 @@ class MetricsLineHandler:
                 while i < gmetrics_cnt_per_line:
                     metrics_name = self.m_names[i]
                     metrics_value = metrics_value_list[i]
-                    graphite_metrics_str = "{}_{} {} {}".format(
+                    graphite_metrics_str = "{}_{};clnt_type={} {} {}".format(
                         self.prefix,
                         _sanitize(metrics_name),
+                        self.client_type,
                         metrics_value,
                         metrics_ts
                     )
@@ -253,6 +255,7 @@ def _exec_pulsar_perf_cmd(pperf_cmd_timeout, cmdstr, subcmd, rm_file, gm_file, g
                                                   rm_file,
                                                   gm_file,
                                                   gmetrics_prefix,
+                                                  subcmd,
                                                   metrics_names,
                                                   line,
                                                   metrics_line_identifier)
@@ -663,7 +666,8 @@ if __name__ == '__main__':
 
         raw_metrics_file = open(raw_metrics_file_name, 'w')
         graphite_metrics_file = open(graphite_metrics_file_name, 'w')
-        graphite_metrics_prefix = "pperf_bench_" + pperf_subcmd
+        #graphite_metrics_prefix = "pperf_bench_" + pperf_subcmd
+        graphite_metrics_prefix = "ppfb"
 
         # Execute "pulsar-perf" command
         #   NOTE: "pulsar-perf consume" doesn't respect "--test-duration" parameter
