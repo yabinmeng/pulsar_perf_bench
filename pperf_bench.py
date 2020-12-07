@@ -536,8 +536,6 @@ if __name__ == '__main__':
     if partitioned and _num_partitions > 1:
         logger.info("{}. Create a partitioned topic - number of partitions: {}; topic name: {}".format(
             cmd_output_cnt, _num_partitions, real_topic_name))
-        cmd_output_cnt = cmd_output_cnt + 1
-        logger.info(_PULSAR_CMD_OUTPUT_SEPERATOR)
 
         pulsar_admin_subcmd_str = "topics create-partitioned-topic -p {} {}".format(
             _num_partitions, real_topic_name)
