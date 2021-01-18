@@ -148,7 +148,7 @@ pulsar-perf-producer:
   # The generation mode of message key
   #   default: N/A
   #   possible values: autoIncrement, random
-  message-key-generation-mode: 
+  message-key-generation-mode:  
 
 
 #######################
