@@ -1,6 +1,5 @@
 pfb-general:
-  #pulsar_bin_homedir: /opt/pulsar
-  pulsar_bin_homedir: /Users/yabinmeng/DataStax/pulsar/apache-pulsar-2.6.2
+  pulsar_bin_homedir: /opt/pulsar
   cluster_name: mypulsar_cluster
   topic_type: persistent
   partitioned_topic: false
@@ -11,7 +10,7 @@ pfb-general:
   #client_type: consumer
 
 pfb-persistence:
-  enabled: true
+  enabled: false
   ensembleSize: 2
   writeQuorum: 1
   ackQuorum: 1
